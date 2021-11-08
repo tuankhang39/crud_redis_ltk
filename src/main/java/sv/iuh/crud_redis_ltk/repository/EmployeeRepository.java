@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Repository;
 import sv.iuh.crud_redis_ltk.model.Employee;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -27,24 +28,33 @@ public class EmployeeRepository {
     }
 
     public void saveEmployee(Employee employee){
-        listOperations.rightPushAll("EMPLOYEE",employee.getId(),employee);
-        System.out.print(employee.toString());
-//        setOperations.add("EMPLOYEE",employee);
-//       hashOperations.put("EMPLOYEE", employee.getId(), employee);
+//      listOperations.rightPush("LIST_EMPLOYEE", employee);
+        setOperations.add("SET_EMPLOYEE", employee);
+//      hashOperations.put("EMPLOYEE", employee.getId(), employee);
     }
     public List<Employee> findAll(){
-//        listOperations.getOperations();
-        return hashOperations.values("EMPLOYEE");
+        //return listOperations.range("LIST_EMPLOYEE", 0, -1);
+        //return hashOperations.values("EMPLOYEE");
+        return Arrays.asList((Employee[]) setOperations.members("SET_EMPLOYEE").toArray());
+
     }
     public Employee findById(Integer id){
+//      return (Employee) hashOperations.get("EMPLOYEE", id);
+        List<Employee> list = findAll();
+        for(Employee e : list) {
+            if(e.getId() == id)
+                return e;
+        };
 
-        return (Employee) hashOperations.get("EMPLOYEE", id);
+        return null;
     }
 
     public void update(Employee employee){
         saveEmployee(employee);
     }
     public void delete(Integer id){
-        hashOperations.delete("EMPLOYEE", id);
+        //listOperations.remove("LIST_EMPLOYEE", 1, findById(id));
+        setOperations.remove("SET_EMPLOYEE", findById(id));
+        //hashOperations.delete("EMPLOYEE", id);
     }
 }
